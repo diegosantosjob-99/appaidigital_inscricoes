@@ -300,6 +300,10 @@ td.t-sub{display:table-cell;font-size:14px;line-height:20px}
 .fx-list{display:flex;flex-direction:column;gap:12px;padding-top:12px;border-top:1px dashed var(--border)}
 .fx-row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr) auto}
 @container (max-width:720px){ .fx-row{grid-template-columns:minmax(0,1fr)} .fx-row .forn-rm{margin-top:0} }
+/* Vagas até 6 dígitos, excedente até 3 dígitos */
+.input[data-agf="vagas"],#defv,#gen-v,#bk-v{width:calc(6ch + 48px);max-width:100%;flex:none}
+.input[data-agf="exc"],#defx,#gen-x{width:calc(3ch + 48px);max-width:100%;flex:none}
+.pct{justify-content:flex-start}
 .gr-list{display:flex;flex-direction:column;gap:12px;max-width:720px}
 .gr-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px 12px;align-items:start}
 .gr-acts{margin-top:22px;min-width:34px}
@@ -602,8 +606,14 @@ td.t-sub{display:table-cell;font-size:14px;line-height:20px}
 .agc-hr{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-left:auto}
 .agc-of{display:flex;align-items:center;gap:8px;padding-right:8px}
 .agc-of label{cursor:pointer}
-.agc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:12px 16px;align-items:start}
-.agc-grid .agc-dt{grid-column:span 2}
+.agc-grid{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-start}
+.agc-grid>.field{flex:1 1 100px;min-width:100px}
+.agc-grid>.agc-dt{flex:2 1 216px;min-width:216px}
+.agc-grid .agc-dt .dt2{flex-wrap:nowrap}
+.agc-grid .agc-dt .dt2 .input{flex:1 1 100px;min-width:100px}
+.agc-grid>.field:has(> .input[data-agf="vagas"]),.agc-grid>.field:has(.input[data-agf="exc"]){flex:0 0 auto}
+.agc-grid>.agc-wd{flex:1 1 100%}
+.agc-grid>.field:has(select[data-agf="v:endereco"]){flex:2 1 160px}
 @media (max-width:520px){ .agc-grid .agc-dt{grid-column:auto} .agc-hr{margin-left:0;width:100%;justify-content:space-between} }
 .dt2{display:flex;flex-wrap:wrap;gap:6px}
 .dt2 .input{flex:1 1 140px;min-width:0}
@@ -852,7 +862,7 @@ function agErrors(d){
     if (p.cancel.d && I && A && (C > I || C < A)) e.push('O cancelamento precisa ficar entre a abertura das inscrições e o início da agenda.');
     }
     const sig = agSig(cfg, g);
-    if (g.ini && seen[sig] != null) e.push(`Igual à agenda ${seen[sig] + 1}: mesma data, horário e opções.`); else seen[sig] = i;
+    if (g.ini && seen[sig] != null) e.push(`Conflito com a agenda ${seen[sig] + 1}: as duas têm a mesma data, horário e opções. Ajuste a data, o horário ou as opções desta agenda.`); else seen[sig] = i;
     if (capOf(g) < (g.occ || 0)) e.push(`Vagas com excedente abaixo dos ${fmt(g.occ)} inscritos.`);
     if ((+g.exc || 0) > 100) e.push('O excedente pode ser no máximo 100%.');
     const rt = g.ret || {};
@@ -1666,7 +1676,7 @@ function step2(){
             <div><button class="btn btn-ghost btn-sm" type="button" data-action="ghadd">${ic('add')}Adicionar horário</button></div>
             <span class="help">Término antes do início vira o dia seguinte.${retOn() ? ' A retirada de ingresso vem 2 h antes do início; ajuste se precisar.' : ''}</span></div>
           ${ad.length?`<div class="field"><span class="lbl">${sfG?4:3}. Opções</span><div style="display:flex;flex-direction:column;gap:10px">${gvals}</div></div>`:''}
-          <div class="field" style="max-width:160px"><label for="gen-v">${(ad.length?4:3) + (sfG?1:0)}. Vagas em cada agenda</label><input class="input num" id="gen-v" type="number" min="0" value="${G.vagas}"></div>
+          <div class="field" style="max-width:160px"><label for="gen-v">${(ad.length?4:3) + (sfG?1:0)}. Vagas em cada agenda</label><input class="input num" id="gen-v" type="number" min="0" max="999999" value="${G.vagas}"></div>
           <div class="field" style="max-width:200px"><label for="gen-x">Excedente</label><div class="pct"><input class="input num" id="gen-x" type="number" min="0" max="100" value="${G.exc||0}"><span aria-hidden="true">%</span></div><span class="help">${G.exc?`${G.vagas} + ${Math.floor(G.vagas*G.exc/100)} = ${G.vagas+Math.floor(G.vagas*G.exc/100)} ingressos`:'Sem venda acima das vagas'}</span></div>
         </div>
       </div>
@@ -1716,7 +1726,7 @@ function step2(){
         <div class="agc-hr">
           <div class="agc-of"><button type="button" role="switch" class="sw" id="sw-${g.id}" data-action="sw" data-ag="${g.id}" aria-checked="${!g.off}"></button><label for="sw-${g.id}" class="t-sub">${g.off?'Pausada':'Ativa'}<span class="sr"> · oferecer agenda ${n}</span></label></div>
           <button class="ibtn" type="button" data-action="agopen" data-ag="${g.id}" aria-expanded="${open}" aria-controls="agd-${g.id}" aria-label="${open?'Fechar':'Abrir'} detalhes da agenda ${n}" title="Detalhes e prazos">${ic(open?'expand_less':'tune')}</button>
-          <button class="ibtn" type="button" data-action="dupag" data-ag="${g.id}" aria-label="Duplicar agenda ${n} para a semana seguinte" title="Duplicar +7 dias">${ic('content_copy')}</button>
+          <button class="ibtn" type="button" data-action="dupag" data-ag="${g.id}" aria-label="Duplicar agenda ${n}" title="Duplicar agenda">${ic('content_copy')}</button>
           <button class="ibtn danger" type="button" data-action="rmag" data-ag="${g.id}" aria-label="Remover agenda ${n}" title="Remover agenda">${ic('delete')}</button>
         </div>
       </div>
@@ -1728,20 +1738,12 @@ function step2(){
         <div class="field agc-dt"><span class="lbl" aria-hidden="true">Término</span><div class="dt2">${cd ? `<label class="sr" for="ag-${g.id}-fim">Data de término da agenda ${n}</label><input class="input num" type="date" id="ag-${g.id}-fim" value="${esc(g.fim||'')}" disabled aria-describedby="ag-${g.id}-fim-h">` : dInp('fim','date',g.fim,'Data de término')}${dInp('hFim','time',g.hFim,'Horário de término')}</div>${cd ? `<span class="help" id="ag-${g.id}-fim-h">Calculado pela duração da corrida: ${cd} ${cd===1?'dia':'dias'}.</span>` : ''}</div>`}
         ${ad.map(dm => { const v = g.vals[dm.k] || ''; const okv = cfg.vals[dm.k].includes(v);
           return `<div class="field"><label for="ag-${g.id}-v-${dm.k}">${dm.label}<span class="sr"> da agenda ${n}</span></label><select class="input" id="ag-${g.id}-v-${dm.k}" data-ag="${g.id}" data-agf="v:${dm.k}" ${lock?'disabled':''} aria-invalid="${!okv}">${okv?'':'<option value="">Escolha</option>'}${cfg.vals[dm.k].map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')}</select></div>`; }).join('')}
-        <div class="field"><label for="ag-${g.id}-vagas">Vagas<span class="sr"> da agenda ${n}</span></label><input class="input num" id="ag-${g.id}-vagas" type="number" min="0" inputmode="numeric" value="${g.vagas}" data-ag="${g.id}" data-agf="vagas" ${g.off?'disabled':''} aria-invalid="${capOf(g) < (g.occ||0)}">${g.occ?`<span class="t-sub">${fmt(g.occ)} inscritos</span>`:''}</div>
+        <div class="field"><label for="ag-${g.id}-vagas">Vagas<span class="sr"> da agenda ${n}</span></label><input class="input num" id="ag-${g.id}-vagas" type="number" min="0" max="999999" inputmode="numeric" value="${g.vagas}" data-ag="${g.id}" data-agf="vagas" ${g.off?'disabled':''} aria-invalid="${capOf(g) < (g.occ||0)}">${g.occ?`<span class="t-sub">${fmt(g.occ)} inscritos</span>`:''}</div>
         <div class="field"><label for="ag-${g.id}-exc">Excedente<span class="sr"> em porcentagem da agenda ${n}</span></label><div class="pct"><input class="input num" id="ag-${g.id}-exc" type="number" min="0" max="100" step="1" inputmode="numeric" value="${+g.exc||0}" data-ag="${g.id}" data-agf="exc" ${g.off?'disabled':''} aria-invalid="${(+g.exc||0)>100}" aria-describedby="ag-${g.id}-exch"><span aria-hidden="true">%</span></div>
           <span class="t-sub num" id="ag-${g.id}-exch">${+g.exc ? `+${fmt(extraOf(g))} · ${fmt(capOf(g))} ingressos` : 'Sem excedente'}</span></div>
         ${agRet(g) ? `<div class="field agc-dt"><span class="lbl" id="rt-${g.id}-l">Retirada de ingresso <span class="req" aria-hidden="true">*</span></span><div class="dt2" role="group" aria-labelledby="rt-${g.id}-l">
           <label class="sr" for="rt-${g.id}-ini">Início da retirada de ingresso da agenda ${n}</label><input class="input num" type="time" id="rt-${g.id}-ini" data-ag="${g.id}" data-ret="ini" value="${(g.ret&&g.ret.ini)||''}" aria-invalid="${!(g.ret&&g.ret.ini)}">
           <label class="sr" for="rt-${g.id}-fim">Término da retirada de ingresso da agenda ${n}</label><input class="input num" type="time" id="rt-${g.id}-fim" data-ag="${g.id}" data-ret="fim" value="${(g.ret&&g.ret.fim)||''}" aria-invalid="${!(g.ret&&g.ret.fim) || (g.ret.ini && g.ret.fim <= g.ret.ini)}"></div></div>` : ''}
-        <div class="field agc-pz"><span class="lbl">Inscrições e cancelamento</span><button type="button" class="pzbtn" data-action="agopen" data-ag="${g.id}" aria-expanded="${open}" aria-controls="agd-${g.id}" aria-label="Prazos da agenda ${n}: inscrições ${p.sf ? `abertas a partir de ${brs(p.abre.d)} ${p.abre.h}, sem encerramento, cancelamento até ${brs(p.cancel.d)} ${p.cancel.h}` : `de ${brs(p.abre.d)} ${p.abre.h} a ${brs(p.encerra.d)} ${p.encerra.h}`}. ${g.pz?'Personalizado':'Padrão'}. Abrir detalhes">
-          ${p.sf ? `<span class="num">Abertas desde ${brs(p.abre.d)} ${p.abre.h}</span>
-          <span class="t-sub num">Sem encerramento · Cancela até ${p.cancel.d?brs(p.cancel.d)+' '+p.cancel.h:'—'}${agRet(g)&&g.ret&&g.ret.ini&&g.ret.fim?` · Retirada ${g.ret.ini} às ${g.ret.fim}`:''}</span>
-          ${g.pz?badge('Personalizado','b-info'):badge('Padrão','b-neu')}` : p.rec ? `<span class="num">Abertas desde ${brs(p.abre.d)} ${p.abre.h}</span>
-          <span class="t-sub">Inscrição até ${hLbl(p.encH)} e cancelamento até ${hLbl(p.cancH)} antes de cada encontro${agRet(g)&&g.ret&&g.ret.ini&&g.ret.fim?` · Retirada ${g.ret.ini} às ${g.ret.fim}`:''}</span>
-          ${badge('Recorrente','b-info')}` : `<span class="num">${brs(p.abre.d)} ${p.abre.h} → ${brs(p.encerra.d)} ${p.encerra.h}</span>
-          <span class="t-sub num">Cancela até ${p.cancel.d?brs(p.cancel.d)+' '+p.cancel.h:'—'}${agRet(g)&&g.ret&&g.ret.ini&&g.ret.fim?` · Retirada ${g.ret.ini} às ${g.ret.fim}`:''}</span>
-          ${g.pz?badge('Personalizado','b-info'):badge('Padrão','b-neu')}`}</button></div>
       </div>
       ${md?`<span class="t-sub agc-rep">${ic('event_repeat','font-size:14px;vertical-align:-2px;margin-right:4px')}${(g.dias||[]).length?'Repete: '+diasLbl(g):'Sem dias da semana definidos'}</span>`:''}
       ${e?`<p class="err agc-err">${ic('error')}<span>${esc(e.join(' '))}</span></p>`:''}
@@ -1782,15 +1784,15 @@ function step2(){
         <button class="btn btn-primary btn-sm" type="button" data-action="gen" aria-expanded="${!!G}">${ic('date_range')}Criar agendas pelo calendário</button>
         <button class="btn btn-secondary btn-sm" type="button" data-action="addag">${ic('add')}Adicionar uma agenda</button>
       </div>
-      <div class="agbar-r"><div class="field"><label for="defv">Vagas para novas agendas</label><input class="input num" id="defv" type="number" min="0" value="${cfg.defaultVagas}" style="width:110px;height:32px"></div>
-        <div class="field"><label for="defx">Excedente para novas</label><div class="pct"><input class="input num" id="defx" type="number" min="0" max="100" value="${cfg.defaultExc||0}" style="width:80px;height:32px"><span aria-hidden="true">%</span></div></div></div>
+      <div class="agbar-r"><div class="field"><label for="defv">Vagas para novas agendas</label><input class="input num" id="defv" type="number" min="0" max="999999" value="${cfg.defaultVagas}" style="height:32px"></div>
+        <div class="field"><label for="defx">Excedente para novas</label><div class="pct"><input class="input num" id="defx" type="number" min="0" max="100" value="${cfg.defaultExc||0}" style="height:32px"><span aria-hidden="true">%</span></div></div></div>
     </div>
     ${genHTML}
     ${nErr?`<div class="alert a-dang" role="alert">${ic('error')}<span>${nErr===1?'Uma agenda precisa':nErr+' agendas precisam'} de ajuste. Veja as linhas marcadas.</span></div>`:''}
     ${cfg.agendas.length>40?`<div class="alert a-warn">${ic('warning')}<span><strong>${cfg.agendas.length} agendas.</strong> Pause as que não serão oferecidas. Listas longas dificultam a escolha no celular.</span></div>`:''}
     ${bulk}
     ${table}
-    <p class="help">Dica: marque várias linhas para mudar vagas, horário ou prazos de uma vez. Use ${ic('content_copy','font-size:14px;vertical-align:-2px')} para repetir uma agenda na semana seguinte.</p>
+    <p class="help">Dica: marque várias linhas para mudar vagas, horário ou prazos de uma vez. Use ${ic('content_copy','font-size:14px;vertical-align:-2px')} para duplicar uma agenda e depois ajuste a cópia.</p>
     <div class="totals"><div><span class="lbl">Agendas que serão salvas</span><b class="num">${active.length}</b></div><div><span class="lbl">Total de vagas</span><b class="num">${fmt(total)}</b></div><div><span class="lbl">Ingressos excedentes</span><b class="num">${totalExtra?'+'+fmt(totalExtra):'0'}</b></div><div><span class="lbl">Ingressos disponíveis</span><b class="num">${fmt(total+totalExtra)}</b></div><div><span class="lbl">Prazos personalizados</span><b class="num">${nCustom}</b></div><div><span class="lbl">O associado verá</span><b>1 atividade</b></div></div>
   </section>
   <div class="formactions"><button class="btn btn-ghost" type="button" data-action="step" data-n="1">${ic('arrow_back')}Voltar para dados gerais</button>
@@ -2315,7 +2317,7 @@ function addrForm(){
       ${fld('comp','Complemento',{ph:'Ex.: bloco B, sala 2'})}
       ${fld('ref','Referência',{ph:'Ex.: em frente à praça', cls:'af-w2'})}
     </div>
-    <div class="af-acts"><button class="btn btn-ghost btn-sm" type="button" data-action="afclear">Limpar</button><button class="btn btn-secondary btn-sm" type="button" data-action="addval" data-k="endereco">${ic('add_location_alt')}Adicionar endereço</button></div>
+    <div class="af-acts"><button class="btn btn-ghost btn-sm" type="button" data-action="afclear">Limpar</button><button class="btn btn-primary btn-sm" type="button" data-action="addval" data-k="endereco">${ic('add_location_alt')}Salvar endereço</button></div>
   </div>`;
 }
 /* CEP: consulta simulada. Os CEPs de exemplo trazem o endereço real; os demais geram um endereço coerente com a região do CEP. */
@@ -2503,8 +2505,11 @@ document.addEventListener('click', e => {
       if (flagOn(d, 'semFim')) { g.fim = ''; if (!(g.dias||[]).length) g.dias = wdOf(g); }
       if (retOn()) g.ret = last && last.ret && last.ret.ini ? {...last.ret} : {ini: g.hIni ? minus(g.hIni, 120) : '', fim: g.hIni || ''};
       cfg.agendas.push(g); render(); { const el = document.getElementById(`ag-${g.id}-ini`); el && el.focus(); } break; }
-    case 'dupag': { const i = cfg.agendas.findIndex(a=>a.id===b.dataset.ag); const g = nextFree(cfg, cfg.agendas[i]);
-      cfg.agendas.splice(i+1, 0, g); render(); snack(`Agenda ${i+1} repetida em ${dayShort(g.ini)}.`); { const el = document.getElementById(`ag-${g.id}-ini`); el && el.focus(); } break; }
+    case 'dupag': { const i = cfg.agendas.findIndex(a=>a.id===b.dataset.ag); const src = cfg.agendas[i];
+      const g = {...clone(src), id:uid(), occ:0}; if (g.fornX) g.fornX.forEach(fx => { fx.ed = false; });
+      cfg.agendas.splice(i+1, 0, g); S.agOpen = {}; S.agOpen[g.id] = true; render();
+      snack(`Cópia da agenda ${i+1} criada. Ajuste data, horário ou opções para resolver o conflito.`);
+      { const el = document.getElementById(`agd-${g.id}`); const card = el && el.closest('.agc'); if (card) card.scrollIntoView({block:'start'}); const fi = document.getElementById(`ag-${g.id}-ini`); fi && !fi.disabled && fi.focus({preventScroll:true}); } break; }
     case 'rmag': { const i = cfg.agendas.findIndex(a=>a.id===b.dataset.ag); const g = cfg.agendas[i];
       if (g.occ > 0) { snack(`A agenda ${i+1} tem ${fmt(g.occ)} inscritos. Pause em vez de remover.`); break; }
       cfg.agendas.splice(i,1); delete S.sel[g.id]; render(); snack(`Agenda ${i+1} removida.`); break; }
