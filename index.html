@@ -717,15 +717,12 @@ const tagCatalog = () => { const s = new Set(TAG_CAT); S.acts.forEach(a => (a.ta
 const hasTag = (d, v) => (d.tags||[]).some(t => t.toLowerCase() === v.toLowerCase());
 const PERMS = ['Nenhum acesso','Acesso portal do Colaborador','Acesso App Presença','Todos'];
 const COLABS = {
-  'Produção': ['KM de Vantagens Hall','Museu do Amanhã','[Assessoria esportiva]','[Produtora de eventos]'],
-  'Bilheteria e controle de acesso': ['[Colaborador da bilheteria]','[Empresa de controle de acesso]'],
-  'Segurança': ['[Empresa de segurança]','[Equipe de segurança da sede]'],
-  'Alimentação e bebidas': ['Rio Scenarium','[Buffet]'],
-  'Som e iluminação': ['[Empresa de som e luz]'],
-  'Transporte': ['[Empresa de ônibus]','[Cooperativa de vans]'],
-  'Limpeza': ['[Empresa de limpeza]'],
-  'Fotografia e filmagem': ['[Fotógrafo]','[Produtora de vídeo]'],
-  'Outra': ['[Empresa de cronometragem]','[Outro fornecedor cadastrado]']
+  'Produtora': ['Caldeirão de Ideias Produções Culturais Ltda (Luisa Thiré)','HGN PRODUCOES E EVENTOS LTDA (BIG BROTHER CIRKUS)','Teatro de Jardim / André Roman','Joyce Candido Da Costa','ESTILO & PERFORMANCE','PORTAL OPEN LUZ','VITOR VINICIOS CORREA PINTO','INSTITUTO ARTISTICO BRASILEIRO','ESPACO CENICO PRODUCOES ARTISTICAS','URIART PRODUCOES ARTISTICAS','BONUS TRACK ENTRETENIMENTO -VICTOR','FAZ ASSIM PRODUCOES LTDA','Aperana Produções e Eventos Ltda','JONATHAN DA ROCHA VIEIRA SANDES','GABRIELA DE OLIVEIRA ESTOLANO','ANA PAULA CARVALHO DE SANT ANA 28930040837','PAR PRODUCOES LTDA','ARRASTAO DE IDEIAS'],
+  'Organizadora': ['ONZE ONZE EVENTOS','TT EVENTOS','JF SPORTS'],
+  'Palestrante': ['Raquel Lobão Evangelista','Xênia Froes da Motta','Ayodele Floriano Silva'],
+  'Estabelecimento': ['GREMIO RECREATIVO ESCOLA DE SAMBA BEIJA FLOR','RIO SAMBA BUS TRANSORTES TURISTICOS LTDA'],
+  'Instrutor': ['RUNNERS RIO ASSESSORIA ESPORTIVA','DANDARA CORREA DE ARAUJO MARTINS','EISBE - ESPACO INTEGRADO DE SAUDE E BEM ESTAR LTDA'],
+  'Instituição de Ensino': ['PUC PR Campus Curitiba']
 };
 const FLAG_GROUPS = [
   ['Visibilidade e acesso', [['portal','Exibir no Portal do Associado'],['notificar','Notificar associados',1],['codigo','Precisa de código de acesso'],['qrcode','Habilitar QR Code'],['retIngresso','Haverá retirada de ingresso',1]]],
@@ -751,7 +748,7 @@ const flagOn = (d, k) => !flagBlock(d, k) && !!d.flags[k];
 const retOn = () => !!(S.draft && flagOn(S.draft, 'retIngresso'));
 const agRet = g => g && g.retOn != null ? !!g.retOn : retOn();
 const dtv = (dd, hh) => dd ? dd + 'T' + (hh || '00:00') : '';
-const FUNCOES = ['Produção','Bilheteria e controle de acesso','Segurança','Alimentação e bebidas','Som e iluminação','Transporte','Limpeza','Fotografia e filmagem','Outra'];
+const FUNCOES = ['Produtora','Organizadora','Palestrante','Estabelecimento','Instrutor','Instituição de Ensino'];
 const sess = h => typeof h === 'string' ? {ini:h, fim:''} : h;
 const hk = x => x.ini + (x.fim ? '-' + x.fim : '');
 const horaLbl = x => x.fim ? x.ini + ' às ' + x.fim : x.ini;
@@ -1007,19 +1004,19 @@ const S = {
 };
 const SEED = {
   '10482': {insIni:'2026-10-01', insIniH:'10:00', insFim:'2026-11-13', insFimH:'18:00', agIni:'2026-11-14', agIniH:'19:00', agFim:'2026-11-15', agFimH:'23:30', cancel:'2026-11-12', cancelH:'23:59',
-    forn:[{funcao:'Produção', outra:'', nome:'KM de Vantagens Hall', perm:'Acesso portal do Colaborador'},{funcao:'Bilheteria e controle de acesso', outra:'', nome:'[Colaborador da bilheteria]', perm:'Todos'},{funcao:'Segurança', outra:'', nome:'[Empresa de segurança]', perm:'Acesso App Presença'}],
+    forn:[{funcao:'Produtora', outra:'', nome:'HGN PRODUCOES E EVENTOS LTDA (BIG BROTHER CIRKUS)', perm:'Acesso portal do Colaborador'},{funcao:'Estabelecimento', outra:'', nome:'GREMIO RECREATIVO ESCOLA DE SAMBA BEIJA FLOR', perm:'Acesso App Presença'}],
     tags:['Show','Música ao vivo','Barra da Tijuca'],
     flags:{...FLAG_DEF, codigo:true, susp:true, suspSemKit:true}},
   '10475': {insIni:'2026-10-05', insIniH:'10:00', insFim:'2026-11-26', insFimH:'18:00', agIni:'2026-11-29', agIniH:'06:30', agFim:'2026-11-29', agFimH:'11:00', cancel:'2026-11-25', cancelH:'23:59',
-    forn:[{funcao:'Produção', outra:'', nome:'[Assessoria esportiva]', perm:'Todos'},{funcao:'Outra', outra:'Cronometragem', nome:'[Empresa de cronometragem]', perm:'Acesso App Presença'}], kit:'Sim', kitModo:'Envio', kitSel:'Ciclo 01', transps:[{transp:'Correios', prio:'Urgente'},{transp:'Jadlog', prio:'Normal'}],
+    forn:[{funcao:'Organizadora', outra:'', nome:'ONZE ONZE EVENTOS', perm:'Todos'},{funcao:'Instrutor', outra:'', nome:'RUNNERS RIO ASSESSORIA ESPORTIVA', perm:'Acesso App Presença'}], kit:'Sim', kitModo:'Envio', kitSel:'Ciclo 01', transps:[{transp:'Correios', prio:'Urgente'},{transp:'Jadlog', prio:'Normal'}],
     tags:['Corrida','Caminhada','Ao ar livre','Zona Sul'],
     flags:{...FLAG_DEF, susp:true, suspComKit:true, certificado:true}},
   '10461': {insIni:'2026-10-01', insIniH:'10:00', insFim:'2026-11-27', insFimH:'18:00', agIni:'2026-11-08', agIniH:'10:00', agFim:'2026-11-29', agFimH:'16:00', cancel:'', cancelH:'',
-    forn:[{funcao:'Produção', outra:'', nome:'Museu do Amanhã', perm:'Todos'},{funcao:'Transporte', outra:'', nome:'[Empresa de ônibus]', perm:'Acesso portal do Colaborador'}]},
+    forn:[{funcao:'Produtora', outra:'', nome:'BONUS TRACK ENTRETENIMENTO -VICTOR', perm:'Acesso portal do Colaborador'},{funcao:'Estabelecimento', outra:'', nome:'RIO SAMBA BUS TRANSORTES TURISTICOS LTDA', perm:'Acesso App Presença'}]},
   '10490': {insIni:'2026-10-20', insIniH:'10:00', insFim:'2026-11-02', insFimH:'18:00', agIni:'2026-11-03', agIniH:'19:00', agFim:'2026-12-15', agFimH:'22:00', cancel:'2026-11-02', cancelH:'18:00', forn:[], situacao:'Pré-inscrito', regra:'Dentro do mês',
     flags:{...FLAG_DEF, confAuto:true, certificado:true}},
   '10433': {insIni:'2026-10-01', insIniH:'10:00', insFim:'2026-11-19', insFimH:'18:00', agIni:'2026-11-21', agIniH:'13:00', agFim:'2026-11-21', agFimH:'18:00', cancel:'2026-11-19', cancelH:'18:00',
-    forn:[{funcao:'Alimentação e bebidas', outra:'', nome:'Rio Scenarium', perm:'Acesso portal do Colaborador'}], regra:'180 dias'}
+    forn:[{funcao:'Produtora', outra:'', nome:'INSTITUTO ARTISTICO BRASILEIRO', perm:'Todos'},{funcao:'Estabelecimento', outra:'', nome:'RIO SAMBA BUS TRANSORTES TURISTICOS LTDA', perm:'Acesso App Presença'}], regra:'180 dias'}
 };
 const GEO_SEED = {'10482':[-23.0003,-43.3657], '10475':[-22.9711,-43.2050], '10461':[-22.8945,-43.1797], '10490':[-22.9085,-43.1840], '10433':[-22.9082195,-43.1839711]};
 const ADDR_SEED = {
